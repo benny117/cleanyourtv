@@ -153,10 +153,14 @@ final class StatsButton extends View {
         text.setAlpha(Math.round(255 * alpha));
         float x = collapsed + 7 * dp;
         float lineHeight = 9 * dp;
-        float top = c - lineHeight * 1.5f;
+        // A figure that could not be read (CPU on some Android 8+ TVs) has no line: centre the ones left.
+        int shownLines = 0;
+        for (String line : lines) if (!line.isEmpty()) shownLines++;
+        float top = c - lineHeight * shownLines / 2f;
+        int row = 0;
         for (int i = 0; i < 3; i++) {
-            float mid = top + lineHeight * i + lineHeight / 2f;
-            if (lines[i].isEmpty()) continue;   // a figure that could not be read (CPU on some Android 8+ TVs)
+            if (lines[i].isEmpty()) continue;
+            float mid = top + lineHeight * row++ + lineHeight / 2f;
             dot.setColor(target[i] > HIGH ? HIGH_COLOR : COLORS[i]);
             dot.setAlpha(Math.round(255 * alpha));
             canvas.drawCircle(x + dotRadius, mid, dotRadius, dot);
