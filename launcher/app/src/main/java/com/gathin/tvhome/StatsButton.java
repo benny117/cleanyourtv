@@ -40,6 +40,8 @@ final class StatsButton extends View {
     private final float[] from = new float[3];
     private final float[] target = {-1, -1, -1};
     private final String[] lines = {"", "", ""};
+    /** A first reading came in: from then on a share of -1 means "cannot be read here", not "not read yet". */
+    private boolean measured;
     private ValueAnimator rings;
     /** 0 at rest (a circle), 1 focused (the pill with its three lines). */
     private float open;
@@ -68,6 +70,7 @@ final class StatsButton extends View {
 
     /** New readings: shares 0..1, -1 for one that could not be read, and the three lines shown when focused. */
     void setValues(float cpu, float memory, float storage, String cpuLine, String memoryLine, String storageLine) {
+        measured = true;
         lines[0] = cpuLine;
         lines[1] = memoryLine;
         lines[2] = storageLine;
@@ -137,8 +140,12 @@ final class StatsButton extends View {
         boolean focused = isFocused();
         float c = collapsed / 2f;
         track.setColor(focused ? 0x1F000000 : 0x1FFFFFFF);
+        // A figure this TV does not let apps read (CPU on the Philips 65OLED706, Android 11) gets no ring at all:
+        // the rings that are left move outwards, so two rings fill the circle instead of an empty outer track.
+        int ring = 0;
         for (int i = 0; i < 3; i++) {
-            float r = radii[i];
+            if (measured && target[i] < 0) continue;
+            float r = radii[ring++];
             oval.set(c - r, c - r, c + r, c + r);
             canvas.drawCircle(c, c, r, track);
             float share = shown[i];
